@@ -2,7 +2,6 @@
 <html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
-<!-- 移动端核心适配，禁止双击缩放 -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>自制纸娃娃模拟器</title>
 <style>
@@ -11,6 +10,7 @@
   padding:0;
   box-sizing:border-box;
   font-family:system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
 body{
   background:#f7f3f9;
@@ -20,42 +20,40 @@ body{
   max-width:480px;
   margin:0 auto;
 }
-/* 画布容器，人物居中 */
+/* 重点：抛弃 aspect-ratio，改用padding百分比固定4:5容器 */
 .doll-canvas{
   position:relative;
   width:100%;
-  aspect-ratio: 4 / 5;
+  padding-top: 125%; /* 4:5 宽高比 5/4=1.25 */
   background:#fff;
   border-radius:16px;
   overflow:hidden;
   margin-bottom:16px;
+  -webkit-transform: translateZ(0); /* 开启GPU合成层，修复Safari渲染丢失 */
+  transform: translateZ(0);
 }
 .doll-canvas img{
   position:absolute;
-  left:50%;
-  top:0;
-  transform:translateX(-50%);
+  inset:0;
+  margin:auto;
   width:85%;
   pointer-events:none;
-  /* 改用opacity控制，给Safari稳定渲染 */
   opacity:1;
-  transition: opacity 0.1s;
+  -webkit-backface-visibility: visible;
+  backface-visibility: visible;
 }
-/* 隐藏状态：透明，保留元素布局，不会触发Safari渲染bug */
 .doll-canvas img.hidden-layer{
   opacity:0;
   pointer-events:none;
 }
-/* 图层z值：数字越小越靠底下 */
 .layer-bg      { z-index:1; }
 .layer-body    { z-index:2; }
 .layer-eye     { z-index:3; }
 .layer-hairback{ z-index:4; }
-.layer-cloth{z-index:5;}
-.layer-bottom   { z-index:6; }
+.layer-cloth   { z-index:5; }
+.layer-bottom  { z-index:6; }
 .layer-acc     { z-index:7; }
 
-/* 按钮面板，手机友好大按钮 */
 .panel{
   display:flex;
   flex-wrap:wrap;
@@ -75,7 +73,6 @@ button{
   background:#e8d8ef;
   color:#333;
   font-size:14px;
-  /* 手机按钮足够大，好戳 */
   min-width:70px;
 }
 button.active{
@@ -132,10 +129,9 @@ button.active{
   </div>
 </div>
 
-<!-- 截图依赖库 -->
-<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<!-- 先注释掉html2canvas，它是iOS Safari渲染干扰元凶！等图片正常了再打开 -->
+<!-- <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script> -->
 <script>
-// 修改！不再控制display，改用class控制opacity
 function setSrc(elId, src){
   const el = document.getElementById(elId);
   if(src === 'none'){
@@ -152,7 +148,6 @@ function setCloth(s){ setSrc('imgCloth',s); }
 function setBottom(s){ setSrc('imgBottom',s); }
 function setAcc(s){ setSrc('imgAcc',s); }
 
-// 一键重置到初始搭配
 function resetAll(){
   setEye('img/eye1.png');
   setHairBack('img/hair_back1.png');
@@ -161,8 +156,10 @@ function resetAll(){
   setAcc('img/acc_none.png');
 }
 
-// 截图保存，加上Safari兼容参数
+// 截图函数保留，但是库被注释，图片正常后再解开上面script标签
 function saveScreenshot(){
+  alert('截图功能暂时关闭，图片正常显示后再开启！');
+  /*
   const dom = document.getElementById('canvas');
   html2canvas(dom,{
     useCORS:true,
@@ -172,18 +169,20 @@ function saveScreenshot(){
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = '我的纸娃娃搭配.png';
-    // Safari移动端需要手动触发下载
     if(navigator.userAgent.match(/iPhone|iPad|iPod/i)){
       const img = new Image();
       img.src = a.href;
+      img.style.maxWidth="90%";
+      img.style.margin="10px auto";
+      img.style.display="block";
       alert('长按图片保存！');
       document.body.appendChild(img);
     }else{
       a.click();
     }
   })
+  */
 }
 </script>
 </body>
 </html>
-

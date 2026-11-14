@@ -23,7 +23,8 @@ body{
 .doll-canvas{
   position:relative;
   width:100%;
-  padding-top: 125%; /* 4:5 */
+  height: calc(100vw * 1.25);
+  max-height: 600px;
   background:#fff;
   border-radius:16px;
   overflow:hidden;
@@ -37,12 +38,11 @@ body{
   top:0;
   transform:translateX(-50%);
   width:85%;
+  height:auto;
   display:block;
-  vertical-align:bottom;
-  min-width:0;
-  min-height:0;
   pointer-events:none;
   opacity:1;
+  will-change: transform, opacity;
   -webkit-backface-visibility: visible;
   backface-visibility: visible;
 }
@@ -133,9 +133,14 @@ button.active{
   </div>
 </div>
 
-<!-- 先注释截图库，避免干扰微信渲染 -->
-<!-- <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script> -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
+function forceRedraw(el){
+  el.style.display = 'none';
+  el.offsetHeight;
+  el.style.display = '';
+}
+
 function setSrc(elId, src){
   const el = document.getElementById(elId);
   if(src === 'none'){
@@ -143,6 +148,9 @@ function setSrc(elId, src){
   }else{
     el.classList.remove('hidden-layer');
     el.src = src;
+    el.onload = function(){
+      forceRedraw(el);
+    }
   }
 }
 
@@ -160,9 +168,38 @@ function resetAll(){
   setAcc('img/acc_none.png');
 }
 
+window.addEventListener('load', function(){
+  const imgs = document.querySelectorAll('.doll-canvas img');
+  imgs.forEach(img=>{
+    forceRedraw(img);
+  })
+});
+
 function saveScreenshot(){
-  alert('截图暂时关闭，图片正常后再开启');
+  const dom = document.getElementById('canvas');
+  html2canvas(dom,{
+    useCORS:true,
+    backgroundColor:null,
+    scale: window.devicePixelRatio
+  }).then(canvas=>{
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = '我的纸娃娃搭配.png';
+    // 适配苹果QQ/Safari，不能直接下载，提示长按保存
+    if(navigator.userAgent.match(/iPhone|iPad|iPod/i)){
+      const img = new Image();
+      img.src = a.href;
+      img.style.maxWidth="90%";
+      img.style.margin="10px auto";
+      img.style.display="block";
+      alert('图片生成好了，长按图片保存！');
+      document.body.appendChild(img);
+    }else{
+      a.click();
+    }
+  })
 }
 </script>
 </body>
 </html>
+

@@ -37,6 +37,14 @@ body{
   transform:translateX(-50%);
   width:85%;
   pointer-events:none;
+  /* 改用opacity控制，给Safari稳定渲染 */
+  opacity:1;
+  transition: opacity 0.1s;
+}
+/* 隐藏状态：透明，保留元素布局，不会触发Safari渲染bug */
+.doll-canvas img.hidden-layer{
+  opacity:0;
+  pointer-events:none;
 }
 /* 图层z值：数字越小越靠底下 */
 .layer-bg      { z-index:1; }
@@ -127,13 +135,13 @@ button.active{
 <!-- 截图依赖库 -->
 <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 <script>
-// 切换图片函数，传 none = 隐藏图层
+// 修改！不再控制display，改用class控制opacity
 function setSrc(elId, src){
   const el = document.getElementById(elId);
   if(src === 'none'){
-    el.style.display = 'none';
+    el.classList.add('hidden-layer');
   }else{
-    el.style.display = 'block';
+    el.classList.remove('hidden-layer');
     el.src = src;
   }
 }
@@ -153,17 +161,26 @@ function resetAll(){
   setAcc('img/acc_none.png');
 }
 
-// 截图保存画布（只截取娃娃区域）
+// 截图保存，加上Safari兼容参数
 function saveScreenshot(){
   const dom = document.getElementById('canvas');
   html2canvas(dom,{
     useCORS:true,
-    backgroundColor:null
+    backgroundColor:null,
+    scale: window.devicePixelRatio
   }).then(canvas=>{
     const a = document.createElement('a');
     a.href = canvas.toDataURL('image/png');
     a.download = '我的纸娃娃搭配.png';
-    a.click();
+    // Safari移动端需要手动触发下载
+    if(navigator.userAgent.match(/iPhone|iPad|iPod/i)){
+      const img = new Image();
+      img.src = a.href;
+      alert('长按图片保存！');
+      document.body.appendChild(img);
+    }else{
+      a.click();
+    }
   })
 }
 </script>

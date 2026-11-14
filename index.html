@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<!-- 移动端核心适配，禁止双击缩放 -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>自制纸娃娃模拟器</title>
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:system-ui, sans-serif;
+}
+body{
+  background:#f7f3f9;
+  padding:12px;
+}
+.wrap{
+  max-width:480px;
+  margin:0 auto;
+}
+/* 画布容器，人物居中 */
+.doll-canvas{
+  position:relative;
+  width:100%;
+  aspect-ratio: 4 / 5;
+  background:#fff;
+  border-radius:16px;
+  overflow:hidden;
+  margin-bottom:16px;
+}
+.doll-canvas img{
+  position:absolute;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
+  width:85%;
+  pointer-events:none;
+}
+/* 图层z值：数字越小越靠底下 */
+.layer-bg      { z-index:1; }
+.layer-body    { z-index:2; }
+.layer-eye     { z-index:3; }
+.layer-hairback{ z-index:4; }
+.layer-cloth{z-index:5;}
+.layer-bottom   { z-index:6; }
+.layer-acc     { z-index:7; }
+
+/* 按钮面板，手机友好大按钮 */
+.panel{
+  display:flex;
+  flex-wrap:wrap;
+  gap:10px;
+  margin-bottom:14px;
+}
+.group-title{
+  width:100%;
+  font-size:15px;
+  color:#666;
+  margin-top:8px;
+}
+button{
+  padding:12px 14px;
+  border:none;
+  border-radius:12px;
+  background:#e8d8ef;
+  color:#333;
+  font-size:14px;
+  /* 手机按钮足够大，好戳 */
+  min-width:70px;
+}
+button.active{
+  background:#b88fc9;
+  color:#fff;
+}
+.btn-action{
+  background:#7a4291;
+  color:white;
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="doll-canvas" id="canvas">
+    <img class="layer-bg" id="imgBg" src="img/bg1.png">
+    <img class="layer-body" id="imgBody" src="img/body.png">
+    <img class="layer-eye" id="imgEye" src="img/eye1.png">
+    <img class="layer-hairback" id="imgHairBack" src="img/hair_back1.png">
+    <img class="layer-cloth" id="imgCloth" src="img/cloth1.png">
+    <img class="layer-bottom" id="imgBottom" src="img/bottom1.png">
+    <img class="layer-acc" id="imgAcc" src="img/acc_none.png">
+  </div>
+
+  <div class="panel">
+    <div class="group-title">眼睛</div>
+    <button onclick="setEye('img/eye1.png')" class="active">眼1</button>
+    <button onclick="setEye('img/eye2.png')">眼2</button>
+    <button onclick="setEye('none')">隐藏</button>
+
+    <div class="group-title">后发</div>
+    <button onclick="setHairBack('img/hair_back1.png')" class="active">后发1</button>
+    <button onclick="setHairBack('img/hair_back2.png')">后发2</button>
+    <button onclick="setHairBack('none')">隐藏</button>
+
+    <div class="group-title">上衣/连衣裙</div>
+    <button onclick="setCloth('img/cloth1.png')" class="active">上衣/连衣裙1</button>
+    <button onclick="setCloth('img/cloth2.png')">上衣/连衣裙2</button>
+    <button onclick="setCloth('none')">隐藏</button>
+
+    <div class="group-title">下装</div>
+    <button onclick="setBottom('img/bottom1.png')" class="active">下装1</button>
+    <button onclick="setBottom('img/bottom2.png')">下装2</button>
+    <button onclick="setBottom('none')">隐藏</button>
+
+    <div class="group-title">配饰</div>
+    <button onclick="setAcc('img/acc1.png')">配饰1</button>
+    <button onclick="setAcc('none')" class="active">无配饰</button>
+  </div>
+
+  <div class="panel">
+    <button class="btn-action" onclick="resetAll()">🔄 重置</button>
+    <button class="btn-action" onclick="saveScreenshot()">📷 截图保存</button>
+  </div>
+</div>
+
+<!-- 截图依赖库 -->
+<script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+<script>
+// 切换图片函数，传 none = 隐藏图层
+function setSrc(elId, src){
+  const el = document.getElementById(elId);
+  if(src === 'none'){
+    el.style.display = 'none';
+  }else{
+    el.style.display = 'block';
+    el.src = src;
+  }
+}
+
+function setEye(s){ setSrc('imgEye',s); }
+function setHairBack(s){ setSrc('imgHairBack',s); }
+function setCloth(s){ setSrc('imgCloth',s); }
+function setBottom(s){ setSrc('imgBottom',s); }
+function setAcc(s){ setSrc('imgAcc',s); }
+
+// 一键重置到初始搭配
+function resetAll(){
+  setEye('img/eye1.png');
+  setHairBack('img/hair_back1.png');
+  setCloth('img/cloth1.png');
+  setBottom('img/bottom1.png');
+  setAcc('img/acc_none.png');
+}
+
+// 截图保存画布（只截取娃娃区域）
+function saveScreenshot(){
+  const dom = document.getElementById('canvas');
+  html2canvas(dom,{
+    useCORS:true,
+    backgroundColor:null
+  }).then(canvas=>{
+    const a = document.createElement('a');
+    a.href = canvas.toDataURL('image/png');
+    a.download = '我的纸娃娃搭配.png';
+    a.click();
+  })
+}
+</script>
+</body>
+</html>
+

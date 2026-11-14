@@ -20,23 +20,27 @@ body{
   max-width:480px;
   margin:0 auto;
 }
-/* 重点：抛弃 aspect-ratio，改用padding百分比固定4:5容器 */
 .doll-canvas{
   position:relative;
   width:100%;
-  padding-top: 125%; /* 4:5 宽高比 5/4=1.25 */
+  padding-top: 125%; /* 4:5 */
   background:#fff;
   border-radius:16px;
   overflow:hidden;
   margin-bottom:16px;
-  -webkit-transform: translateZ(0); /* 开启GPU合成层，修复Safari渲染丢失 */
+  -webkit-transform: translateZ(0);
   transform: translateZ(0);
 }
 .doll-canvas img{
   position:absolute;
-  inset:0;
-  margin:auto;
+  left:50%;
+  top:0;
+  transform:translateX(-50%);
   width:85%;
+  display:block;
+  vertical-align:bottom;
+  min-width:0;
+  min-height:0;
   pointer-events:none;
   opacity:1;
   -webkit-backface-visibility: visible;
@@ -129,7 +133,7 @@ button.active{
   </div>
 </div>
 
-<!-- 先注释掉html2canvas，它是iOS Safari渲染干扰元凶！等图片正常了再打开 -->
+<!-- 先注释截图库，避免干扰微信渲染 -->
 <!-- <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script> -->
 <script>
 function setSrc(elId, src){
@@ -156,32 +160,8 @@ function resetAll(){
   setAcc('img/acc_none.png');
 }
 
-// 截图函数保留，但是库被注释，图片正常后再解开上面script标签
 function saveScreenshot(){
-  alert('截图功能暂时关闭，图片正常显示后再开启！');
-  /*
-  const dom = document.getElementById('canvas');
-  html2canvas(dom,{
-    useCORS:true,
-    backgroundColor:null,
-    scale: window.devicePixelRatio
-  }).then(canvas=>{
-    const a = document.createElement('a');
-    a.href = canvas.toDataURL('image/png');
-    a.download = '我的纸娃娃搭配.png';
-    if(navigator.userAgent.match(/iPhone|iPad|iPod/i)){
-      const img = new Image();
-      img.src = a.href;
-      img.style.maxWidth="90%";
-      img.style.margin="10px auto";
-      img.style.display="block";
-      alert('长按图片保存！');
-      document.body.appendChild(img);
-    }else{
-      a.click();
-    }
-  })
-  */
+  alert('截图暂时关闭，图片正常后再开启');
 }
 </script>
 </body>
